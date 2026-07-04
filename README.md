@@ -383,7 +383,8 @@ hydra -l soclab -P passwords.txt ssh://<Ubuntu-IP> -t 4 -V
 ```
 
 <img width="608" height="303" alt="image" src="https://github.com/user-attachments/assets/b36621bc-ad50-42ce-a4fd-29a70a135f0c" />
-The attack generated more than ten failed SSH authentication attempts from the same source IP address within a short period, satisfying the alert conditions.
+
+The attack generated ten failed SSH authentication attempts from the same source IP address within a short period, satisfying the alert conditions.
 
 ---
 
