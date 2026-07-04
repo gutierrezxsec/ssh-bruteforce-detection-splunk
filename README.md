@@ -1,3 +1,7 @@
+SSH Authentication Monitoring & Brute Force Detection
+
+
+
 # Step 1 – Homelab Architecture
 
 ## Objective
@@ -164,6 +168,107 @@ Ubuntu Server continuously forwards endpoint logs to Splunk Enterprise, providin
 
 This configuration serves as the foundation for the remaining SOC detection and investigation scenarios in this homelab.
 
+
+
+
+
+# Attack Simulation – SSH Brute Force Attack
+
+## Objective
+
+Simulate an SSH brute-force attack against an Ubuntu Server to generate authentication events that can be collected, monitored, and investigated using Splunk Enterprise.
+
+---
+
+## Attack Overview
+
+A controlled SSH brute-force attack was launched from the Kali Linux attacker machine against the Ubuntu Server. The objective was not to compromise the system but to generate realistic authentication logs for SOC monitoring and detection.
+
+The attack repeatedly attempted to authenticate using invalid credentials against the SSH service running on the Ubuntu Server.
+
+---
+
+## Attack Environment
+
+| Machine                    | Role          |
+| -------------------------- | ------------- |
+| Kali Linux                 | Attacker      |
+| Ubuntu Server 24.04 LTS    | Target/Victim |
+| Splunk Universal Forwarder | Log Forwarder |
+| Splunk Enterprise          | SIEM Platform |
+
+---
+
+## Attack Execution
+
+A dedicated test account was created on the Ubuntu Server for the lab.
+
+From the Kali Linux machine, the Hydra password auditing tool was used with a custom password list to perform multiple SSH authentication attempts against the target system.
+
+Example command:
+
+```bash
+hydra -l soclab -P passwords.txt ssh://<Ubuntu-IP> -t 4 -V
+```
+
+### Command Parameters
+
+| Parameter           | Description                      |
+| ------------------- | -------------------------------- |
+| `-l soclab`         | Target username                  |
+| `-P passwords.txt`  | Password wordlist                |
+| `ssh://<Ubuntu-IP>` | Target SSH service               |
+| `-t 4`              | Number of concurrent connections |
+| `-V`                | Display each login attempt       |
+
+---
+
+## Expected Behavior
+
+Each unsuccessful authentication attempt generated SSH authentication events within the Ubuntu authentication log.
+
+These events were automatically forwarded by the Splunk Universal Forwarder to Splunk Enterprise for analysis.
+
+Typical events included:
+
+* Failed password
+* Invalid user
+* Authentication failure
+* Connection closed
+
+---
+
+## Log Source
+
+```text
+/var/log/auth.log
+```
+
+---
+
+## Verification
+
+The generated events were successfully received by Splunk Enterprise and verified using the following search:
+
+
+```spl
+index=* source="/var/log/auth.log" sshd
+```
+
+The search confirmed that the SSH daemon recorded each authentication attempt, including the timestamp, source IP address, targeted username, authentication result, and additional SSH session details.
+<img width="1427" height="668" alt="image" src="https://github.com/user-attachments/assets/624eadfe-8fb9-47a0-b82a-6d553e377131" />
+
+---
+
+## Result
+
+The simulated brute-force attack successfully generated authentication telemetry that could be analyzed in Splunk Enterprise.
+
+The collected logs provided sufficient information to identify repeated failed login attempts, determine the attack source, and build detection dashboards and alert rules based on SSH authentication activity.
+
+
+## bruteforce command  -hydra -l soclab -P passwords.txt ssh://<ubuntu-ip> -t 4 -V
+<img width="495" height="362" alt="image" src="https://github.com/user-attachments/assets/255f2cb8-66be-4420-bbc2-a8ace70dc44e" />
 
 
 
