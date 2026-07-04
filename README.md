@@ -210,6 +210,7 @@ Example command:
 ```bash
 hydra -l soclab -P passwords.txt ssh://<Ubuntu-IP> -t 4 -V
 ```
+<img width="495" height="362" alt="image" src="https://github.com/user-attachments/assets/255f2cb8-66be-4420-bbc2-a8ace70dc44e" />
 
 ### Command Parameters
 
@@ -267,10 +268,148 @@ The simulated brute-force attack successfully generated authentication telemetry
 The collected logs provided sufficient information to identify repeated failed login attempts, determine the attack source, and build detection dashboards and alert rules based on SSH authentication activity.
 
 
-## bruteforce command  -hydra -l soclab -P passwords.txt ssh://<ubuntu-ip> -t 4 -V
-<img width="495" height="362" alt="image" src="https://github.com/user-attachments/assets/255f2cb8-66be-4420-bbc2-a8ace70dc44e" />
 
 
+# Dashboard Creation
 
+To improve visibility of SSH authentication activity, a Splunk dashboard was created to monitor and investigate brute-force attacks in real time. The dashboard summarizes key authentication metrics and provides quick access to relevant security events generated during the attack simulation.
+
+## Dashboard Panels
+
+<img width="2244" height="2173" alt="SSH Brute Force Detection Dashboard" src="https://github.com/user-attachments/assets/dfdaffcd-c2db-40b6-a9b4-f6a714e449d7" />
+
+
+### 1. Failed Login Attempts Over Time
+
+Displays the number of failed SSH login attempts over time to identify spikes in authentication activity.
+
+```spl
+index=* source="/var/log/auth.log" "Failed password"
+| timechart span=1m count AS "Failed Logins"
+```
+
+### 2. Total Failed Login Attempts
+
+Shows the total number of failed SSH authentication attempts recorded during the selected time range.
+
+```spl
+index=* source="/var/log/auth.log" "Failed password"
+| stats count AS "Failed Login Attempts"
+```
+
+### 3. Top Attacking IP Addresses
+
+Identifies the source IP addresses responsible for the highest number of failed login attempts.
+
+```spl
+index=* source="/var/log/auth.log" "Failed password"
+| rex "from (?<src_ip>\d+\.\d+\.\d+\.\d+)"
+| stats count by src_ip
+| sort -count
+```
+
+### 4. Most Targeted Usernames
+
+Displays the usernames most frequently targeted during the brute-force attack.
+
+```spl
+index=* source="/var/log/auth.log" "Failed password"
+| rex "for (invalid user )?(?<username>\S+)"
+| stats count by username
+| sort -count
+```
+
+### 5. Authentication Success vs. Failure
+
+Compares successful and failed SSH authentication attempts to provide an overall authentication summary.
+
+```spl
+index=* source="/var/log/auth.log" sshd
+| eval Result=case(
+    like(_raw,"%Failed password%"),"Failed",
+    like(_raw,"%Accepted password%"),"Successful"
+)
+| search Result=*
+| stats count by Result
+```
+
+### 6. Recent SSH Authentication Events
+
+Lists the latest SSH authentication events for detailed investigation and log review.
+
+```spl
+index=* source="/var/log/auth.log" sshd
+| table _time host _raw
+| sort -_time
+```
+
+The completed dashboard provides a centralized view of SSH authentication activity, enabling faster detection and investigation of brute-force attacks.
+
+
+# Alert Creation
+
+An automated Splunk alert was created to detect potential SSH brute-force attacks by monitoring repeated failed authentication attempts from the same source IP address.
+
+The alert evaluates incoming SSH authentication logs and triggers when a source IP exceeds the defined threshold of failed login attempts within the configured time window. This helps identify suspicious activity early and provides immediate notification to security analysts.
+
+## SPL
+
+```spl
+index=* source="/var/log/auth.log" "Failed password"
+| rex "from (?<src_ip>\d+\.\d+\.\d+\.\d+)"
+| stats count by src_ip
+| where count >= 10
+```
+
+This alert complements the dashboard by providing automated detection, while the dashboard supports investigation and analysis of the generated events.
+
+
+# Alert Validation
+
+## Objective
+
+Validate that the configured Splunk alert successfully detects an SSH brute-force attack and triggers automatically when the defined threshold is exceeded.
+
+---
+
+## Attack Simulation
+
+A second SSH brute-force attack was launched from the Kali Linux attacker machine using Hydra. The attack targeted the Ubuntu Server with a custom password list containing only incorrect passwords to generate multiple failed authentication attempts.
+
+Example command:
+
+```bash
+hydra -l soclab -P passwords.txt ssh://<Ubuntu-IP> -t 4 -V
+```
+
+<img width="608" height="303" alt="image" src="https://github.com/user-attachments/assets/b36621bc-ad50-42ce-a4fd-29a70a135f0c" />
+The attack generated more than ten failed SSH authentication attempts from the same source IP address within a short period, satisfying the alert conditions.
+
+---
+
+## Alert Detection
+
+The Splunk alert continuously monitored SSH authentication logs and automatically triggered after detecting repeated failed login attempts from a single source IP.
+
+Alert Logic:
+
+```spl
+index=* source="/var/log/auth.log" "Failed password"
+| rex "from (?<src_ip>\d+\.\d+\.\d+\.\d+)"
+| stats count by src_ip
+| where count >= 10
+```
+
+---
+
+## Result
+
+The alert successfully triggered during the simulated brute-force attack, confirming that the detection rule correctly identified excessive failed SSH authentication attempts from the attacking host.
+
+This validation demonstrates that the SIEM can automatically detect potential SSH brute-force activity while providing analysts with immediate notification for further investigation.
+
+<img width="1432" height="347" alt="image" src="https://github.com/user-attachments/assets/a88f51f5-7a02-42ed-ae36-b2053e6fba5d" />
+
+<img width="2112" height="2785" alt="SSH Brute Force Detection Dashboard" src="https://github.com/user-attachments/assets/3c3033e6-2a68-4d7e-9b17-062cf5e68624" />
 
 
