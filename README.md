@@ -1,4 +1,4 @@
-# 🛡️ SSH Authentication Monitoring & Brute Force Detection
+#  SSH Authentication Monitoring & Brute Force Detection
 
 A SOC-focused homelab project simulating an SSH brute-force attack and detecting it end-to-end using Splunk Enterprise — from log forwarding, to attack simulation, to dashboarding and alert validation.
 
@@ -93,12 +93,12 @@ The mobile hotspot phone provides the network connection for the entire lab. Sin
 
 ### Current Progress
 
-- ✅ VirtualBox installed on both laptops.
-- ✅ Kali Linux configured and operational.
-- ✅ Ubuntu Server installed on the spare laptop.
-- ✅ Splunk Enterprise configured on the main laptop.
-- ✅ Splunk Universal Forwarder downloaded and ready for installation.
-- ✅ Network connectivity between both laptops verified.
+-  VirtualBox installed on both laptops.
+-  Kali Linux configured and operational.
+-  Ubuntu Server installed on the spare laptop.
+-  Splunk Enterprise configured on the main laptop.
+-  Splunk Universal Forwarder downloaded and ready for installation.
+-  Network connectivity between both laptops verified.
 
 ---
 
@@ -128,7 +128,7 @@ The Universal Forwarder was configured to send logs to the Splunk Enterprise ins
 
 Once configured, the monitored logs were successfully forwarded and indexed by Splunk Enterprise.
 
-### 🔧 Troubleshooting
+###  Troubleshooting
 
 **Issue 1 — Forward Server Inactive**
 
@@ -148,7 +148,7 @@ Connectivity testing showed that the Ubuntu VM could successfully reach the Splu
 
 Further investigation identified Windows Defender Firewall on the main laptop as the root cause. Although Splunk Enterprise was actively listening on TCP port **9997**, inbound connections from the Ubuntu VM were blocked. After temporarily disabling the firewall, the Universal Forwarder immediately established an active connection and log forwarding began successfully.
 
-### ✅ Result
+###  Result
 
 **Figure 1.** Successful Log Ingestion from Ubuntu Server to Splunk Enterprise — Splunk Enterprise successfully receives and indexes system logs forwarded by the Splunk Universal Forwarder running on the Ubuntu Server VM.
 
@@ -232,7 +232,7 @@ The search confirmed that the SSH daemon recorded each authentication attempt, i
 
 <img width="1427" height="668" alt="SSH auth log search results in Splunk" src="https://github.com/user-attachments/assets/624eadfe-8fb9-47a0-b82a-6d553e377131" />
 
-### ✅ Result
+###  Result
 
 The simulated brute-force attack successfully generated authentication telemetry that could be analyzed in Splunk Enterprise. The collected logs provided sufficient information to identify repeated failed login attempts, determine the attack source, and build detection dashboards and alert rules based on SSH authentication activity.
 
@@ -356,7 +356,7 @@ index=* source="/var/log/auth.log" "Failed password"
 | where count >= 10
 ```
 
-### ✅ Result
+###  Result
 
 The alert successfully triggered during the simulated brute-force attack, confirming that the detection rule correctly identified excessive failed SSH authentication attempts from the attacking host.
 
