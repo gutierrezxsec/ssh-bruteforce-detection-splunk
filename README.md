@@ -31,7 +31,7 @@ Build a SOC-focused homelab that simulates attacker activity against a Linux end
 | **Kali Linux VM** | Attacker simulation machine | Used to generate realistic offensive activity such as reconnaissance, port scanning, service enumeration, and login attempts. This VM represents the adversary side of the lab and is used to test whether Splunk can detect suspicious behavior. |
 | **Spare Laptop** | Secondary host machine | Dedicated to running the victim-side virtual machine. Using a separate physical laptop helps isolate the victim environment from the attacker environment and makes the lab more stable when both systems are running at the same time. |
 | **Ubuntu Server VM** | Victim endpoint | Acts as the target system in the lab. This machine generates authentication logs, system logs, and other endpoint activity that can be monitored by Splunk. It is the system being observed during simulated attacks. |
-| **Splunk Universal Forwarder** | Log forwarding agent | Installed inside the Ubuntu Server VM to collect local logs and securely forward them to Splunk Enterprise. It is responsible for sending endpoint data from the victim machine to the SIEM for centralized analysis. |
+| **Splunk Universal Forwarder** | Log forwarding agent | Installed inside the Ubuntu Server VM to collect local logs and forward them to Splunk Enterprise. It is responsible for sending endpoint data from the victim machine to the SIEM for centralized analysis. |
 | **Mobile Hotspot Phone** | Network provider | Provides the wireless network connection that links both laptops and their virtual machines. The phone hotspot acts as the temporary local network for the lab, allowing the attacker machine, victim machine, and Splunk server to communicate without requiring a home router or enterprise network. |
 
 ### Device Roles in Detail
@@ -91,14 +91,6 @@ The mobile hotspot phone provides the network connection for the entire lab. Sin
 - The Ubuntu Server is reachable from the Kali VM for attack simulation.
 - Splunk Enterprise receives logs over the local network.
 
-### Current Progress
-
--  VirtualBox installed on both laptops.
--  Kali Linux configured and operational.
--  Ubuntu Server installed on the spare laptop.
--  Splunk Enterprise configured on the main laptop.
--  Splunk Universal Forwarder downloaded and ready for installation.
--  Network connectivity between both laptops verified.
 
 ---
 
@@ -106,7 +98,7 @@ The mobile hotspot phone provides the network connection for the entire lab. Sin
 
 ### Objective
 
-Configure the Ubuntu Server VM to securely forward system logs to Splunk Enterprise using the Splunk Universal Forwarder. This establishes the centralized logging pipeline that will be used throughout the SOC homelab.
+Configure the Ubuntu Server VM to forward system logs to Splunk Enterprise using the Splunk Universal Forwarder. This establishes the centralized logging pipeline that will be used throughout the SOC homelab.
 
 ### Installation Process
 
@@ -147,6 +139,9 @@ Connectivity testing showed that the Ubuntu VM could successfully reach the Splu
 **Issue 3 — Windows Defender Firewall**
 
 Further investigation identified Windows Defender Firewall on the main laptop as the root cause. Although Splunk Enterprise was actively listening on TCP port **9997**, inbound connections from the Ubuntu VM were blocked. After temporarily disabling the firewall, the Universal Forwarder immediately established an active connection and log forwarding began successfully.
+
+> [!NOTE] 
+> Disabling the firewall is not a good practice. A better fix is to create an inbound rule that allows only TCP 9997.
 
 ###  Result
 
